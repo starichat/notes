@@ -14,6 +14,7 @@ Write a SQL query to get the second highest salary from the Employee table.
 | 3  | 300    |
 +----+--------+
 ## solution:
+select 
 
 ## desc
 > 92.Reverse Linked List II 
