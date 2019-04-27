@@ -1,5 +1,5 @@
 
-# 多线程的温和介绍
+# 多线程的入门指导
 > 原文：https://www.internalpointers.com/post/gentle-introduction-multithreading
 > 翻译：starichat
 
