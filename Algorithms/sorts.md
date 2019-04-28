@@ -75,4 +75,115 @@
 ```
 ## 选择排序
 
+```
+    public void selectSort(int[] a,int n){
+        if(n <= 1) return ;
+        
+    }
+```
+
 ## 快速排序
+public class quickSort {
+
+    // 快速排序
+    public static void quickSort(int[] a, int start,int end){
+        int p = Partition(a,start,end);
+        quickSort(a,start,p-1);
+        quickSort(a,p+1,end);
+
+    }
+
+
+
+    // 分区
+    public static int Partition(int[] a,int start,int end){
+        int pivot = a[end];  //为了方便，将最后一个元素作为开始元素
+        int i = start;
+        for(int j=start;j<end;++j){
+            if(a[j]<pivot){
+                if(i==j){
+                    ++i;
+                } else {
+                    // 交换i,j两个位置
+                    int tmp = a[i];
+                    a[i++] = a[j];
+                    a[j] = tmp;
+                }
+
+            }
+        }
+        int tmp = a[i];
+        a[i] = pivot;
+        a[end] = tmp;
+    return i;
+    }
+
+}
+## 归并排序
+public class MergeSort {
+
+    /**
+     * 归并排序思想采用分治的思想:先分后治
+     * 将待排序序列折半分解，直到分解为最小单元为止，这是分
+     * 对最小单元排序不断向上递推，只是治。
+     * 根据这种思路我们可以发现可以用递归来实现。分治是一种思想，递归是一种编程方法。
+     */
+
+    // 递归一定要先写出递推公式
+    public void merge(int[] a,int start, int end){
+        // 递归终止条件
+        if(start >= end) return;
+
+        // 找到中间位置
+        int middle = start + (end - start)/2;
+        // 分
+        merge(a,start,middle);
+        merge(a,middle+1,end);
+
+        // 合,将有序的两个数据排序
+        mergeSort(a,start,middle,end);
+    }
+    // 因为两个序列都是有序的，所以进行归并时，可以参考有序序列的合并
+    public void mergeSort(int[] a,int start,int middle,int end){
+       // 引入两个索引
+        int i = start;
+        int j = middle+1;
+        // 申请一个和a[start~end] 一样大小的空间
+        int[] temp = new int[end-start+1];
+        int k = 0;
+        while(i<=middle&&j<=end){
+            if(a[i]>a[j]){
+                // 说明a[j]是目前的最小的数
+                temp[k] = a[j];
+                k++;
+                j++;
+            }
+            else {
+                // 说明a[i]是最小的数了
+                temp[k] = a[i];
+                k++;
+                i++;
+            }
+        }
+        // 可能某一个序列的数全部放到temp里了，但是另外一个序列还有数据，应该全部放到temp后面去
+        // 判断哪个序列还有剩余的数据
+        int begin = i;
+        int tend = middle;
+        if(j<=end){
+            begin = j;
+            tend = end;
+        }
+        // 将剩余数组放到temp中去
+        while(start <= end){
+            temp[k++] = a[begin++];
+        }
+        // 拷贝会原数组
+        for(i = 0;i<end-middle;++i){
+            a[middle+i] = temp[i];
+        }
+
+    }
+
+
+}
+
