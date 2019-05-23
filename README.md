@@ -1,4 +1,4 @@
-﻿# 系统性记录自己学习的过程
+# 系统性记录自己学习的过程
 ## 分类
 ### [python](../python/)
 
@@ -16,6 +16,6 @@
 
 ### [计算机网络读书笔记](../ComputerNetworking/)
 
-### [设计模式读书笔记](../DesignPatter/)
+### [设计模式读书笔记](../DesignPatter/README.md)
 
 ### [观点和感想](../thinking/)
