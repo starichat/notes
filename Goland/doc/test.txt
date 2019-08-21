@@ -1,0 +1,330 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"time"
+)
+
+func readRaw(path string) string {
+	start := time.Now()
+	fi, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer fi.Close()
+	defer func() {
+		fi.Close()
+		fmt.Printf("[readRaw] cost time %v \n", time.Now().Sub(start))
+	}()
+
+	var data []byte
+	buf := make([]byte, 1024)
+	for {
+		n, err := fi.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		data = append(data, buf[:n]...)
+		if 0 == n {
+			break
+		}
+	}
+	return string(data)
+}
+
+func readWithBufferIO(path string) string {
+	start := time.Now()
+	fi, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		fi.Close()
+		fmt.Printf("[readWithBufferIO] cost time %v \n", time.Now().Sub(start))
+	}()
+
+	r := bufio.NewReader(fi)
+
+	var data []byte
+
+	buf := make([]byte, 1024)
+	for {
+		n, err := r.Read(buf)
+		if err != nil && err != io.EOF {
+			panic(err)
+		}
+		if 0 == n {
+			break
+		}
+		data = append(data, buf[:n]...)
+	}
+	return string(data)
+}
+
+func readWithIOUtil(path string) string {
+	start := time.Now()
+	fi, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		fi.Close()
+		fmt.Printf("[readWithIOUtil] cost time %v \n", time.Now().Sub(start))
+	}()
+
+	fd, err := ioutil.ReadAll(fi)
+	return string(fd)
+}
+
+func main() {
+	file := "test.txt"
+
+	readRaw(file)
+	readWithBufferIO(file)
+	readWithIOUtil(file)
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+用如上代码读取已准备的文件，多次测试用时信息如下（进行了超过10次测试，仅取了两个结果来说明问题）：
+
+[readRaw] cost time 1.490717874s 
+[readWithBufferIO] cost time 573.336617ms 
+[readWithIOUtil] cost time 379.678285ms 
+1
+2
+3
+[readRaw] cost time 1.45133396s 
+[readWithBufferIO] cost time 541.944555ms 
+[readWithIOUtil] cost time 983.909509ms 
+1
+2
+3
+可以看到，毫无疑问使用os包readRaw读取的方式是最慢的，且相比其他两种方式要慢很多。但是readWithBufferIO和readWithIOUtil 两种方式速度的快慢就很难分伯仲了。
+
+透过现象看本质
+既然得到了这个结论，那么我们来看看为什么会这样。
+
+1. 为什么bufferIO会比普通read快？
+看bufio源码
+
+// NewReader returns a new Reader whose buffer has the default size.
+func NewReader(rd io.Reader) *Reader {
+	return NewReaderSize(rd, defaultBufSize)
+}
+1
+2
+3
+4
+再看NewReaderSize方法
+
+// NewReaderSize returns a new Reader whose buffer has at least the specified
+// size. If the argument io.Reader is already a Reader with large enough
+// size, it returns the underlying Reader.
+func NewReaderSize(rd io.Reader, size int) *Reader {
+	// Is it already a Reader?
+	b, ok := rd.(*Reader)
+	if ok && len(b.buf) >= size {
+		return b
+	}
+	if size < minReadBufferSize {
+		size = minReadBufferSize
+	}
+	r := new(Reader)
+	r.reset(make([]byte, size), rd)
+	return r
+}	
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+bufferio默认创建一个大小为4096 byte的缓冲区，它的 read 方法执行一次IO系统调用读取4096byte（4K）大小到缓冲区，此后r.Read(buf)都会从缓冲区中读。而普通io每次读/写操作都会执行系统调用，必然会比bufferIO慢很多，毕竟每次系统调用都会从执行从用户态到内核态的切换。
+
+2. 为什么bufferio和ioutil的效率难分伯仲？
+来看ioutil源码
+
+// MinRead is the minimum slice size passed to a Read call by
+// Buffer.ReadFrom. As long as the Buffer has at least MinRead bytes beyond
+// what is required to hold the contents of r, ReadFrom will not grow the
+// underlying buffer.
+const MinRead = 512
+
+// ReadAll reads from r until an error or EOF and returns the data it read.
+// A successful call returns err == nil, not err == EOF. Because ReadAll is
+// defined to read from src until EOF, it does not treat an EOF from Read
+// as an error to be reported.
+func ReadAll(r io.Reader) ([]byte, error) {
+	return readAll(r, bytes.MinRead)
+}
+
+// readAll reads from r until an error or EOF and returns the data it read
+// from the internal buffer allocated with a specified capacity.
+func readAll(r io.Reader, capacity int64) (b []byte, err error) {
+	var buf bytes.Buffer
+	// If the buffer overflows, we will get bytes.ErrTooLarge.
+	// Return that as an error. Any other panic remains.
+	defer func() {
+		e := recover()
+		if e == nil {
+			return
+		}
+		if panicErr, ok := e.(error); ok && panicErr == bytes.ErrTooLarge {
+			err = panicErr
+		} else {
+			panic(e)
+		}
+	}()
+	if int64(int(capacity)) == capacity {
+		buf.Grow(int(capacity))
+	}
+	_, err = buf.ReadFrom(r)
+	return buf.Bytes(), err
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+可以看到，ioutil.ReadAll最后实现的也是一个带缓冲的IO，且大小在512byte以上，且使用的是bytes.Buffer，可以根据情况动态的增长。但是的Grow时重新分配buf也会带来一些开销，所以两者相比就变成了一个权衡，没有绝对占优。
+
+但是ioutil的好处就是方便，ioutil.ReadAll或者ioutil.ReadFile一行代码就搞定。
+
+ ———————————————— 
+
+版权声明：本文为CSDN博主「Stephen.W」的原创文章，遵循CC 4.0 by-sa版权协议，转载请附上原文出处链接及本声明。
+
+原文链接：https://blog.csdn.net/C_J33/article/details/82957394
