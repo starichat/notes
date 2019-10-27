@@ -1,5 +1,7 @@
 > 创建该仓库，旨在提升自己的同时也能给大家提供一些帮助，分享自己踩过的坑，为后来者提供更好的学习方向，也尽力提供一些系统性的学习资料。
 
+> 每周发版一个 weekly 
+
 ## 分类
 ### [python](/python/)
 
@@ -9,16 +11,14 @@
 
 ### [Goland](/Goland/)
 
-### [C/C++](/CPP/)
-
 ### [Java](/java/)
 
 ### [安卓](/android/)
 
 ### [算法](/Algorithms)
 
-### [计算机网络读书笔记](/ComputerNetworking/)
-
 ### [设计模式读书笔记](/DesignPatter/README.md)
+
+### [周报](/weekly/README.md)
 
 ### [观点和感想](/thinking/)
