@@ -1,4 +1,4 @@
-package redis
+package redisutil
 
 import (
 	"fmt"
@@ -7,9 +7,10 @@ import (
 	redis "github.com/gomodule/redigo/redis"
 )
 
-func incr() {
+func Incr() {
 	c, err := redis.Dial("tcp", "localhost:32771")
 	errCheck(err)
+	c.Send("auth", "123456")
 	defer c.Close()
 
 	_, setErr := c.Do("set", "url", "nihao ")
