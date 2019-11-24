@@ -4,35 +4,68 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
-type User struct {
-	Name  string `json:"name" form:"name" query:"name"`
-	Email string `json:"email" form:"email" query:"email"`
+func login(c echo.Context) error {
+	username := c.FormValue("username")
+	password := c.FormValue("password")
+
+	// Throws unauthorized error
+	if username != "jon" || password != "shhh!" {
+		return echo.ErrUnauthorized
+	}
+
+	// Create token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Set claims
+	claims := token.Claims.(jwt.MapClaims)
+	claims["name"] = "Jon Snow"
+	claims["admin"] = true
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"token": t,
+	})
 }
 
-func (c echo.Context) dologin() (err error) {
-	u := new(User)
-	if err = c.Bind(u); err != nil {
-		return
-	}
-	// todo
-	// 校验数据
-	return c.JSON(http.StatusOK, u)
+func accessible(c echo.Context) error {
+	return c.String(http.StatusOK, "Accessible")
+}
 
+func restricted(c echo.Context) error {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	name := claims["name"].(string)
+	return c.String(http.StatusOK, "Welcome "+name+"!")
 }
 
 func main() {
 	e := echo.New()
-	s := &http.Server{
-		Addr:         ":1234",
-		ReadTimeout:  20 * time.Minute,
-		WriteTimeout: 20 * time.Minute,
-	}
 
-	e.Get("/", dologin)
+	// Middleware
+	// e.Use(middleware.Logger())
+	// e.Use(middleware.Recover())
 
-	e.Logger.Fatal(e.StartServer(s))
+	// Login route
+	e.POST("/login", login)
 
+	// Unauthenticated route
+	e.GET("/", accessible)
+
+	// Restricted group
+	r := e.Group("/restricted")
+	r.Use(middleware.JWT([]byte("secret")))
+	r.GET("", restricted)
+
+	e.Logger.Fatal(e.Start(":1323"))
 }
