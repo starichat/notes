@@ -7,6 +7,10 @@ func main() {
 
 	myArray := [][]int{{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}}
 	fmt.Println(minPathSum(myArray))
+	fmt.Println(len(myArray))
+	fmt.Println(len(myArray[0]))
+	fmt.Println(myArray[0][1])
+	fmt.Println(myArray[1][0])
 
 }
 
@@ -29,10 +33,10 @@ func minPathSum(arr [][]int) []int {
 
 		if flag {
 			less = arr[i][j+1]
-			j++
+			i++
 		} else {
 			less = arr[i+1][j]
-			i++
+			j++
 		}
 		fmt.Println(less)
 		fmt.Println("i,j", i, j)
