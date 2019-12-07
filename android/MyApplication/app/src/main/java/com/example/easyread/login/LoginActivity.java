@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyread.ListActivity;
 import com.example.easyread.R;
+import com.example.easyread.http.OkHttpUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,6 +45,7 @@ public class LoginActivity extends AppCompatActivity {
                 try {
                     // 校验登录是否成功
 
+                    System.out.println(OkHttpUtil.auth("http://192.168.1.10:1323/login",getJsonFromInput()));
                     Intent intent = new Intent(LoginActivity.this, ListActivity.class);
                     startActivity(intent);
 

@@ -13,8 +13,8 @@ func login(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
-	// Throws unauthorized error
-	if username != "jon" || password != "shhh!" {
+	// 进行appid和密码匹配，匹配成功则认证成功
+	if username != "admin" || password != "123" {
 		return echo.ErrUnauthorized
 	}
 
