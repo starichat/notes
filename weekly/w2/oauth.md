@@ -1,38 +1,75 @@
 # 「浅」谈认证授权
 
-> 简介：我们乘坐火车时，一般需要先凭身份证买票取票才能持票乘车，为了防止逃票，列车员还会进行查票验票，对我们的身份进行验证。我们访问互联网服务的时候，也是类似的过程，凭用户名密码登录（买票取票），访问服务接口享受互联网服务（持票乘车）。
-我们可以将凭用户名密码登录（买票取票）称为认证，经过认证后授权乘坐某趟列车的权限，我们就可以凭借这个权限去享受这趟旅途了。
-所以，我们登录过程其实涉及到两个过程：
-* 认证：
-指的是当前用户的身份，当用户登陆过后，系统便能追踪到他的身份作出符合相应的业务逻辑的操作。即是用户没有登陆，大多数系统也能追踪到他的身份，只是当作来宾或者匿名用户来处理。认证技术解决的是“我是谁”的问题.
-* 授权：
-指的是什么样的身份被允许访问某些资源，在获取到用户身份后继续检查用户的权限。来解决用户能访问什么样的资源。
+> 平时开发中，我们可能直接用到了很多安全框架，但是很多时候，我们只知道怎么用，却不知所以然。涉及到互联网服务，就涉及到身份认证。这里所说的认证其实包含了两个部分「认证」和「授权」
+* 认证：指的是当前用户的身份，当用户登陆过后，系统便能追踪到他的身份作出符合相应的业务逻辑的操作。即是用户没有登陆，大多数系统也能追踪到他的身份，只是当作来宾或者匿名用户来处理。认证技术解决的是“我是谁”的问题.
+* 授权：指的是什么样的身份被允许访问某些资源，在获取到用户身份后继续检查用户的权限。来解决用户能访问什么样的资源。
 
-接下来，我们针对下面一个小的需求带你了解认证授权过程。
+下面我们以实际的一个例子来了解认证授权的「前世后生」
 
-> 需求：为了保证接口调用的安全性，只有经过认证的系统才能调用我们的接口，没有认证的接口会被拒绝。
+> 在微服务架构中，我们需要保证我们提供的接口能够被合法调用，没有经过认证的「用户」无法访问我们的接口。那么我们应该如何设计一套鉴权框架呢？
 
-对于这样一个简单需求，其实我们需要处理两件事情：认证和授权。
+## 传统方案
+如何实现这样一个鉴权方案，鉴权无非就是验证用户名密码，那么「用户」将用户名和密码随请求url一起传递到服务端，服务端进行验证，如果是合法用户则允许访问。流程可以类似如下设计：
+1. 客户端直接请求 url？username=XXX&password=XXXX
+2. 服务端接受请求，验证username 和 password 是否合法，合法则允许访问，否则拒绝访问
 
-> 因为http协议是无状态的，当我们需要获得用户是否已经登录时，我们需要检查用户的登录状态。一般来说登录成功后，服务端会颁发一个登录凭证，这个凭证一般会存在两个地方，客户端和服务端，当然也只有这两个地方能够存放。在每次请求的时候必须携带该凭证才能请求api以确保api的安全。就像我们乘车上车的时候，列车员会验票，防止我们逃票。
-{补充http协议的无状态性}
+是不是解决问题？在信息泄漏如此严重的今天，这样明文传递密码合适吗？这样密码很容器被截取，所以，我们需要借助加密算法对密码进行加密，请求前，我们将用户信息类似 username:password 构造，并采用base64加密后，随请求一起传递给服务端。这种方式叫做 「HTTP Basic」，应该算是最早期的http认证手段了，但是base64只是编码规则，而不是加密算法，所有用base64加密后的内容基本等于明文。那么我们使用SHA等加密算法进行机密再传输就好了嘛。流程如下：
+1. SHA（url？username=XXX&password=XXXX）
+2. 服务端解析请求，从中解析出用户信息
+3. 认证用户信息，如果合法，则允许访问，否则拒绝访问
+这样看似是完美的，但是因为http协议是无状态的，他不需要建立请求方和调用方的关系，因此，请求方的数据很容器被「中间人」截获，并实施「重放攻击」。
 
-微服务架构的安全访问图如下：
-http://img.blog.itpub.net/blog/2019/08/21/8bba1b8558339304.jpeg?x-oss-process=style/bb
+> 重放攻击：
+https://juejin.im/post/5ad43b86f265da239236cedc
 
-## 传统的认证授权措施
-通过用户名和密码来做认证。我们允许访问我们服务的调用放，派发一个应用名和一个对应的密码。调用方每次进行接口与请求的时候，都携带自己的APPid和密码，服务端接受到接口调用请求之后，解析出用户名和密码，并与存储在服务端的appid和密码进行比对。如果一致，则说明认证成功，否则拒绝请求。
+虽然我们的请求是加密的，但是黑客可以拦截我们的请求，并不解析请求，获取到请求结果后再转发给用户，用户毫不察觉，并通过借助此次请求持续不停地请求资源服务器。
 
-简单来说就是以下方式：
+## oauth 策略
+一步步提出问题，一步步解决问题，正式互联网开发的一个好的方式。一步步迭代优化，最终得到我们需要的方式。oauth策略在「用户」和服务端设置一个授权层，「用户」在请求接口的时候将请求地址，username，password拼接在一起，进行加密生成token，然后将这个token和username随url一起传递给服务端，服务端收到这些数据后，根据username从「数据库」中取出密码，基于「用户」生成token的算法，也生成服务端token，如果一致则认证成功，否则失败。流程如下：
+客户端：
+1. SHA(url?username=xxx&password=xxxx)
+2. url?username=xxx&token=xxx 
+服务端
+3. 解析url，username，token
+4. 从持久层取oassword，并生成服务端token
+5. 验证服务端token和客户端token是否一致，一致则可以访问接口，否则拒绝访问
 
+上面这一通操作，将提供资源服务和认证授权服务分开了，隔离出了一个认证授权服务层，但是这样就可以一劳永逸了吗？因为，生成的token是固定的，所以，还是没法避免「重放攻击」。解决办法就是，我们给token设置一个有效时间嘛，优化一下token的生成算法，给生成token的算法中加入时间戳，服务端解析之后需要增加一步查看时间戳是否过期的需求。流程如下：
+1. 生成token
+2. 生成url
+3. 请求服务端
+4. 服务端解析url，appid，token，ts
+5. 验证token是否失效
+6. 从数据库中取出数据验证
+7. 生成服务端token
+8. 校验服务端token和客户端token
 
+我们结合代码看下类似这样一个认证授权的功能如何实现：
+结合面向对象的设计理念，作出如下设计：
+1. 对象设计
+### AuthToken
+* 生成token算法
+* 验证token是否匹配
+* 验证是否token有效
 
-这样验证，有一个明显的缺点：每次都是明文传输密码，很容易被中间人截获，因此，我们在此基础上做一些改进，使用加密算法，对密码进行加密再传输到服务端进行验证。
+### APIRequest 
+* 拼接形成新的url
+* 解析url信息
 
-「重放攻击」
-{csrf攻击}
+### CredentialStorage
+* 从持久层取出username对应的密码
+2. 业务处理
+### APIAuthebcator
+* 接受url进行并进行认证
 
-以上做法仍然会被中间人截获，黑客携带该密码仍然可以请求其他资源。
+看下代码实现
+```
+
+```
+这里只列出了业务逻辑的处理，完整代码访问 xxxx ，或者「阅读原文」即可查看。
+
+## 总结
+最终，我们做到了绝对的安全了吗？没有，也不存在绝对的安全，我们将黑客拦截时间控制到了一分钟以内，在接口处理效率和安全之间做到了一个合适的处理，过度设计容易导致接口效率变低，由此看来，损失可能更大，攻防之间从来都没有绝的，我们所做的不过就是增加攻击的成本。针对上述设计，我们还可以做一些ip，访问次数。。。等限制，对一些安全级别比较高的接口，可以实施，一般的需求，以上设计就足够了。同时对于将加密算法暴露给客户端，确实也是不安全的行为，客户端极易被破解。所有，就衍生出了「JWT技术」
 
 ## jwt
 1. 用户使用用户名和口令到认证服务器上请求认证
@@ -46,128 +83,3 @@ http://img.blog.itpub.net/blog/2019/08/21/8bba1b8558339304.jpeg?x-oss-process=st
 客户端每次携带该token进行请求即可，应用服务器每次会验证该token是否过期，是否可用。为了保证安全，这里会缩短token有效期，但是有效期太短又会影响用户体验，所以这里一般有两种解决方案：
 1. 提供access_token 该token有效期较长，refresh_token 该token用来刷新access_token
 2. 短期的后台token刷新策略，token有效期很短，当token过期后，必须用当前token去获取新的token。
-
-下面给出一个关于JWT的认证授权示例：
-```
-package main
-
-import (
-	"net/http"
-
-	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-)
-
-type User struct {
-	Name     string `json:"username" form:"username" query: "username"`
-	Password string `json:"password" form:"password" query:"password"`
-}
-
-func login(c echo.Context) error {
-	u := new(User)
-	// Throws unauthorized error
-	if err := c.Bind(u); err != nil {
-		return echo.ErrUnauthorized
-	}
-
-	// Create token
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	// // Set claims
-	// claims := token.Claims.(jwt.MapClaims)
-	// claims["name"] = "Jon Snow"
-	// claims["admin"] = true
-	// claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte("secret"))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{
-		"token": t,
-	})
-}
-
-func accessible(c echo.Context) error {
-	return c.String(http.StatusOK, "Accessible")
-}
-
-func restricted(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	name := claims["name"].(string)
-	return c.String(http.StatusOK, "Welcome "+name+"!")
-}
-
-func main() {
-	e := echo.New()
-
-	// Middleware
-	// e.Use(middleware.Logger())
-	// e.Use(middleware.Recover())
-
-	// Login route
-	e.POST("/login", login)
-
-	// Unauthenticated route
-	e.GET("/", accessible)
-
-	// Restricted group
-	r := e.Group("/restricted")
-	r.Use(middleware.JWT([]byte("secret")))
-	r.GET("", restricted)
-
-	e.Logger.Fatal(e.Start(":8080"))
-}
-
-```
-
-运行该服务：
-使用postman请求接口：如果没有携带token或者token错误则返回。。，只有对正确的token才会给予结果。
-
-我们看看jwt的token是如何生成以及，服务端如何检验客户端传递的token数据的。
-
-## oauth策略
-针对上文提出的传统的认证策略，我们发现仍然不安全，主要原因客户端传递的认证数据是静态的不变的，无法分辨请求方到底是谁。我们提出以下解决方案：
-客户端认证的时候，认证成功后，服务端给客户端加密后的token，该token代表着用户认证信息，以后客户端持有该token去访问其他api，服务端只需要验证该token即可。
-这种策略为oauth。
-
-oauth提出了新的解决策略，调用方将请求接口的URL和APPID、密码拼接在一起，然后进行加密，生成一个token。调用方在进行接口请求的时候，将这个token及appid，随url一块传递给服务端。服务端接受到这些数据之后，根据appid从数据库中取出相应的密码，并通过同样的token生成算法，生成另一个token。用这个新生成的token和调用方传递来的token对比。如果一致，则允许接口调用请求，否则，拒绝接口调用。
-
-具体流程如下：
-1. 生成token
-2. 生成新的url
-3. 请求服务端
-4. 服务端解析出url，appid，token
-5. 从数据库中取出数据进行对比
-6. 生成token
-7. 比对服务端token和客户端token
-
-
-上述这种设计由于token生成是固定的，所以仍然不安全，被截获后，仍然可以被认证。那么就对生成token的算法进行优化，生成token加入时间戳，调用方在进行接口请求的时候，将token，appid，时间戳，一起传给服务端。
-
-服务端接受到这些数据之后，会验证时间戳，验证一定时间内的token是否过期。
-
-流程如下：
-1. 生成token
-2. 生成url
-3. 请求服务端
-4. 服务端解析url，appid，token，ts
-5. 验证token是否失效
-6. 从数据库中取出数据验证
-7. 生成服务端token
-8. 校验服务端token和客户端token
-
-
-## 应用
-1. 一般服务的登录校验
-jwt 足够
-2. 外部系统访问微服务系统
-设计api请求授权系统，为了减少对数据的查询，一般来说使用refresh_token 策略更为有效
-
-
- > 总结：安全是相对的，没有觉得的安全，我们能做的不过是增加破解的成本而已。当然同时也增加了自己的成本。上述安全措施已经在接口响应效率和整体token算法之间取得了很好的权衡。但是我们会发现每次请求都要验证数据库，这也是一项不小的开机，因此，对于一般的安全验证没有那么高的api，可以降低一些需求，采用jwt模式，由服务端颁发token，客户端携带该token去完成请求即可。
-
