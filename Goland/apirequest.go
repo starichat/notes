@@ -2,17 +2,22 @@ package auth
 
 // apirequest
 type ApiRequest struct {
-	BaseUrl   string
-	Token     string
-	AppId     string
-	Timestamp int64
+	baseUrl   string
+	appId     string
+	token     string
+	timestamp int64
 }
 
-func initApiRequest(baseUrl, token, appId string, timestamp int64) {
-
+func InitApi(baseUrl, token, appId string, timestamp int64) ApiRequest{
+	return ApiRequest{baseUrl,appId,token,timestamp}
 }
 
 func CreateFromFullUrl(url string) ApiRequest {
+	// 解析url
+	// 截取第一个/之前的字符串
+	// appid=
+	// token
+	// timestamp
 	return ApiRequest{"a","aa","aaa",1}
 }
 
