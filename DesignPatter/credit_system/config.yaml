@@ -1,0 +1,10 @@
+statetransfer:
+    recoverdamage: true
+    blocksperrequest: 20
+    maxdeltas: 200
+    timeout:
+        singleblock: 2s
+        singlestatedelta: 2s
+        fullstate: 60s
+peer:
+    abcd:   3322d
