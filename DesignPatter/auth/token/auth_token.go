@@ -23,7 +23,7 @@ func Init(token string, createTime int64) AuthToken{
 	return AuthToken{token:token,createTime:createTime,expiredTimeInterval:expiredTimeInterval}
 }
 
-func InitByexpire(token string, createTime int64, expiredTimeInterval int64) AuthToken{
+func InitWithexpire(token string, createTime int64, expiredTimeInterval int64) AuthToken{
 	return AuthToken{token:token,createTime:createTime,expiredTimeInterval:expiredTimeInterval}
 }
 

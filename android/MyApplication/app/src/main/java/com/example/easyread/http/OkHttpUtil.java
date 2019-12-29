@@ -1,5 +1,7 @@
 package com.example.easyread.http;
 
+import android.util.Log;
+
 import java.io.IOException;
 
 import okhttp3.MediaType;
@@ -34,8 +36,10 @@ public class OkHttpUtil {
         if (response.isSuccessful()) {
             return response.body().string();
         } else {
-            throw new IOException("Unexpected code " + response);
+            Log.e("wxl","response err");
+
         }
+        return null;
 
     }
 

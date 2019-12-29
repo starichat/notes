@@ -45,12 +45,9 @@ public class LoginActivity extends AppCompatActivity {
                 try {
                     // 校验登录是否成功
 
-                    System.out.println(OkHttpUtil.auth("http://192.168.1.10:1323/login",getJsonFromInput()));
+                    Log.i("wxl",OkHttpUtil.auth("http://192.168.1.10:1323/login",getJsonFromInput()));
                     Intent intent = new Intent(LoginActivity.this, ListActivity.class);
                     startActivity(intent);
-
-
-
 
                 } catch (Exception e){
                     e.printStackTrace();
