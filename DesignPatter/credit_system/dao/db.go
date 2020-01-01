@@ -18,9 +18,9 @@ func InitDB() *gorm.DB {
 		log.Fatal("Database connection failed. Database url : "+config.DBConfig.URL+" error: ",err)
 	}
 	log.Println("gorm!!!")
-	db = db .Set("gorm:table_options", "ENGINE=InnoDB  DEFAULT CHARSET=utf8;").AutoMigrate()
-
-	db.LogMode(config.DBConfig.Debug)
+	//db = db .Set("gorm:table_options", "ENGINE=InnoDB  DEFAULT CHARSET=utf8;").AutoMigrate()
+	//	//
+	//	//db.LogMode(config.DBConfig.Debug)
 	DB = db
 
 	return db

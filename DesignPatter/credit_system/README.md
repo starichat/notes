@@ -63,3 +63,14 @@
 
 2. 业务模型设计
 
+```sql
+CREATE TABLE `credits`(
+    `id` INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    `channel_id` VARCHAR(32) DEFAULT NULL,
+    `event_id` VARCHAR(32) DEFAULT NULL,
+    `credit` VARCHAR(32) DEFAULT NULL,
+    `created_time` DATETIME DEFAULT NULL,
+    `expired_time` DATETIME DEFAULT NULL
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
