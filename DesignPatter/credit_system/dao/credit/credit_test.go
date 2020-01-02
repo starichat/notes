@@ -34,7 +34,7 @@ func Test_UpdateCredit(t *testing.T) {
 		Id:   1,
 		ChannelId:   "24241",
 		EventId:     "4422",
-		Credit:      "aa",
+		Credit:     123,
 		CreatedTime:  time.Now(),
 		ExpiredTime: time.Now(),
 	}
