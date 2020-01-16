@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 )
+const(
+  EXPIR  = 60*60*1000000000 // one hour
+)
 
 func Test_AddCredit(t *testing.T) {
 	// 初始化配置
@@ -15,64 +18,65 @@ func Test_AddCredit(t *testing.T) {
 	db := New(c)
 	defer db.Close()
 	credit := &model.CreditInfo{
-		ChannelId:   "4sff",
-		EventId:     "43334",
-		Credit:      100,
+		ChannelId:   "4s222ff",
+		EventId:     "432334",
+		Credit:      10011,
+		CreatedTime:  time.Now(),
+		ExpiredTime: time.Now().Add(EXPIR),
+	}
+	log.Println(EXPIR)
+	db.AddCredit(credit)
+}
+
+func Test_UpdateCredit(t *testing.T) {
+	// 初始化配置
+	c := config.NewDBConfig()
+	// 初始化 db 连接
+	db := New(c)
+	defer db.Close()
+	credit := &model.CreditInfo{
+		Id:   1,
+		ChannelId:   "24241",
+		EventId:     "4422",
+		Credit:     123,
 		CreatedTime:  time.Now(),
 		ExpiredTime: time.Now(),
 	}
-	db.AddCredit(credit)
+	db.UpdateCredit(credit)
 }
-//
-//func Test_UpdateCredit(t *testing.T) {
-//	// 初始化配置
-//	config.Init()
-//	// 初始化 db 连接
-//	db := InitDB()
-//	defer db.Close()
-//	c:=&Credit{
-//		Id:   1,
-//		ChannelId:   "24241",
-//		EventId:     "4422",
-//		Credit:     123,
-//		CreatedTime:  time.Now(),
-//		ExpiredTime: time.Now(),
-//	}
-//	UpdateCredit(c)
-//}
-//
+
 func Test_FindCreditById(t *testing.T) {
 	// 初始化配置
 	c := config.NewDBConfig()
 	// 初始化 db 连接
 	db := New(c)
 	defer db.Close()
-	credit ,err := db.FindCreditById(1)
+	credit ,err := db.FindCreditById(2)
 	if err != nil {
 		log.Println(err)
 	}
 	log.Println(credit)
 }
 
-//func Test_FindLimitCredit(t *testing.T) {
-//	// 初始化配置
-//	config.Init()
-//	// 初始化 db 连接
-//	db := InitDB()
-//	defer db.Close()
-//	credits ,err := FindLimitCredit(1,2)
-//	if err != nil {
-//		log.Println(err)
-//	}
-//	log.Println(credits)
-//}
-//
-//func Test_DeleteCredit(t *testing.T) {
-//	// 初始化配置
-//	config.Init()
-//	// 初始化 db 连接
-//	db := InitDB()
-//	defer db.Close()
-//	DeleteCredit(32)
-//}
+func Test_FindLimitCredit(t *testing.T) {
+	// 初始化配置
+	c := config.NewDBConfig()
+	// 初始化 db 连接
+	db := New(c)
+	defer db.Close()
+	credits ,err := db.FindLimitCredit(2,0)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(credits)
+}
+
+func Test_DeleteCredit(t *testing.T) {
+	// 初始化配置
+	c := config.NewDBConfig()
+	// 初始化 db 连接
+	db := New(c)
+	defer db.Close()
+	db.DeleteCredit(5)
+}
 
