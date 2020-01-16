@@ -68,7 +68,7 @@ CREATE TABLE `credits`(
     `id` INT PRIMARY KEY AUTO_INCREMENT NOT NULL COMMENT "订单明细id",
     `channel_id` VARCHAR(32) DEFAULT NULL COMMENT "积分赚取或消费渠道ID",
     `event_id` VARCHAR(32) DEFAULT NULL COMMENT "相关事件id，比如订单id，评论id，优惠卷兑换交易id等", 
-    `credit` VARCHAR(32) DEFAULT NULL COMMENT "积分",
+    `credit` INT DEFAULT NULL COMMENT "积分",
     `created_time` DATETIME DEFAULT NULL COMMENT "消费时间或者赚取时间",
     `expired_time` DATETIME DEFAULT NULL COMMENT "积分过期时间"
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

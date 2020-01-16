@@ -14,3 +14,12 @@ func GetIncreaseID(ID *uint64) uint64 {
 	}
 	return n
 }
+
+//   生成channel_id
+func GenerateChannleId() {
+
+}
+
+func GenerateEventId(int) {
+
+}

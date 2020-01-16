@@ -1,29 +1,51 @@
 package dao
 
 import (
+	"context"
 	_ "github.com/go-sql-driver/mysql" // mysql
 	"github.com/jinzhu/gorm"
 	"github.com/starichat/notes/DesignPatter/credit_sys/config"
 	"log"
 )
 
-// DB gorm
-var DB *gorm.DB
+type Dao struct {
+	c *config.DBConfig
+	DB *gorm.DB
+}
 
-func InitDB() *gorm.DB {
-	log.Println( config.DBConfig.URL)
+// New init mysql db
+func New(c *config.DBConfig) (d *Dao) {
+	d = &Dao{
+		c : c,
+	}
+	d.initDB()
+	return d
+}
 
-	db, err := gorm.Open(config.DBConfig.Connection, config.DBConfig.URL)
+func(d *Dao) initDB() (err error) {
+	log.Println(d.c.URL)
+
+
+	d.DB, err = gorm.Open(d.c.Connection, d.c.URL)
 	if err != nil {
-		log.Fatal("Database connection failed. Database url : "+config.DBConfig.URL+" error: ",err)
+		log.Fatal("Database connection failed. Database url : "+d.c.URL+" error: ",err)
 	}
 	log.Println("gorm!!!")
 	//db = db .Set("gorm:table_options", "ENGINE=InnoDB  DEFAULT CHARSET=utf8;").AutoMigrate()
 	//	//
 	//	//db.LogMode(config.DBConfig.Debug)
-	DB = db
+	return err
+}
 
-	return db
+func (d *Dao) Close() {
+	if d.DB != nil {
+		d.DB.Close()
+	}
+}
 
-
+func (d *Dao) Ping(c context.Context) (err error) {
+	if d.DB != nil {
+		err = d.DB.DB().PingContext(c)
+	}
+	return err
 }

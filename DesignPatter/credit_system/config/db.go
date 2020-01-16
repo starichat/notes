@@ -6,7 +6,7 @@ import (
 )
 
 // 数据库配置
-type dbConfig struct {
+type DBConfig struct {
 	Connection string
 	Host       string
 	Port       int
@@ -19,14 +19,14 @@ type dbConfig struct {
 	Debug bool
 }
 
-func newDBConfig() *dbConfig {
+func NewDBConfig() *DBConfig {
 	// 默认配置
 	viper.SetDefault("DB.CONNECTION", "mysql")
 	viper.SetDefault("DB.HOST", "127.0.0.1")
 	viper.SetDefault("DB.PORT", 3306)
-	viper.SetDefault("DB.DATABASE", viper.GetString("APP.NAME"))
-	viper.SetDefault("DB.USERNAME", "gin")
-	viper.SetDefault("DB.PASSWORD", "")
+	viper.SetDefault("DB.DATABASE", "credit")
+	viper.SetDefault("DB.USERNAME", "root")
+	viper.SetDefault("DB.PASSWORD", "111111Aa")
 
 	username := viper.GetString("DB.USERNAME")
 	password := viper.GetString("DB.PASSWORD")
@@ -35,7 +35,7 @@ func newDBConfig() *dbConfig {
 	database := viper.GetString("DB.DATABASE")
 	url := createDBURL(username, password, host, port, database)
 
-	return &dbConfig{
+	return &DBConfig{
 		Connection: viper.GetString("DB.CONNECTION"),
 		Host:       host,
 		Port:       port,
