@@ -31,9 +31,6 @@ func(d *Dao) initDB() (err error) {
 		log.Fatal("Database connection failed. Database url : "+d.c.URL+" error: ",err)
 	}
 	log.Println("gorm!!!")
-	//db = db .Set("gorm:table_options", "ENGINE=InnoDB  DEFAULT CHARSET=utf8;").AutoMigrate()
-	//	//
-	//	//db.LogMode(config.DBConfig.Debug)
 	return err
 }
 
