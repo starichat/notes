@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "github.com/go-sql-driver/mysql" // mysql
 	"github.com/jinzhu/gorm"
-	"github.com/starichat/notes/DesignPatter/credit_sys/config"
+	"github.com/starichat/notes/DesignPatter/credit_system/config"
 	"log"
 )
 

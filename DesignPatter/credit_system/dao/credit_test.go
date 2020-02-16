@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"github.com/starichat/notes/DesignPatter/credit_sys/config"
-	"github.com/starichat/notes/DesignPatter/credit_sys/model"
+	"github.com/starichat/notes/DesignPatter/credit_system/config"
+	"github.com/starichat/notes/DesignPatter/credit_system/model"
 	"log"
 	"testing"
 	"time"
@@ -18,7 +18,7 @@ func Test_AddCredit(t *testing.T) {
 	db := New(c)
 	defer db.Close()
 	credit := &model.CreditInfo{
-		ChannelId:   "4s222ff",
+		ChannelId:   "4s222ff1",
 		EventId:     "432334",
 		Credit:      10011,
 		CreatedTime:  time.Now(),
@@ -35,10 +35,10 @@ func Test_UpdateCredit(t *testing.T) {
 	db := New(c)
 	defer db.Close()
 	credit := &model.CreditInfo{
-		Id:   1,
-		ChannelId:   "24241",
-		EventId:     "4422",
-		Credit:     123,
+		Id:   3,
+		ChannelId:   "2424221",
+		EventId:     "442222",
+		Credit:     122222,
 		CreatedTime:  time.Now(),
 		ExpiredTime: time.Now(),
 	}
@@ -51,7 +51,7 @@ func Test_FindCreditById(t *testing.T) {
 	// 初始化 db 连接
 	db := New(c)
 	defer db.Close()
-	credit ,err := db.FindCreditById(2)
+	credit ,err := db.FindCreditById(3)
 	if err != nil {
 		log.Println(err)
 	}
@@ -77,6 +77,6 @@ func Test_DeleteCredit(t *testing.T) {
 	// 初始化 db 连接
 	db := New(c)
 	defer db.Close()
-	db.DeleteCredit(5)
+	db.DeleteCredit(1)
 }
 

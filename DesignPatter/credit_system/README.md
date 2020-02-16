@@ -47,7 +47,11 @@
 |create_time|积分赚取或消费时间
 |expired_time|积分过期时间
 
-
+## id 设计
+在该积分系统中，为了减少过多的数据库设计与存储，在id中携带必要的信息，从id中计算获取。
+1. 积分明细id: 该id 仅作为一个记录号
+2. channel_id: 积分赚取或消费的途径（1位）+ 积分赚取还是消费类型（1位） + id
+3. event_id: 事件类型（两位）+ id
 > 接口设计：接口设计需符合单一职责原则，粒度越小通用性就越好。但是，粒度不能太小，因为粒度太小就需要设计很多小接口，如果这些接口需要通过网络请求，特别是一些微服务的对外http公网请求接口，会严重影响性能。另外，粒度太小也会破坏事务的原子性。因而，在接口设计方面通常都需要坚固性能和设计原则。
 
 本系统接口如下：
@@ -72,5 +76,105 @@ CREATE TABLE `credits`(
     `created_time` DATETIME DEFAULT NULL COMMENT "消费时间或者赚取时间",
     `expired_time` DATETIME DEFAULT NULL COMMENT "积分过期时间"
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `user_credit`(
+    `id` INT PRIMARY KEY AUTO_INCREMENT NOT NULL COMMENT "id",
+    `user_id` INT NOT NULL COMMENT "用户id",
+    `credit_id` INT NOT NULL COMMENT "积分id"
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
+## service 接口定义
+1. 获取积分
+2. 消费积分
+3. 获取所有可用积分
+4. 获取所有消费积分
+5. 获取总积分
+
+## restful api 公开接口
+1. 签到
+> request
+```
+{
+    userid:12388,
+    type:1,
+}
+
+```
+> response 
+```
+{
+    status:200,
+    msg:success,
+    data:creditId
+}
+
+```
+
+2. 消费
+> request
+```
+{
+    userid:12388,
+    type:0,
+    amount:100.89
+}
+
+```
+> response 
+```
+{
+    status:200,
+    msg:success,
+    data:creditId
+}
+
+```
+3. 查询自己的总积分
+> request
+```
+
+    userid:12388
+
+```
+> response 
+```
+{
+    status:200,
+    msg:success,
+    data:creditVal
+}
+
+```
+4. 查询所有消费积分明细
+> request
+```
+userid:12388
+```
+> response 
+```
+{
+    status:200,
+    msg:success,
+    data:credits[]
+}
+
+```
+5. 查询所有可用积分明细
+> request
+```
+userid:12388
+```
+> response 
+```
+{
+    status:200,
+    msg:success,
+    data:credits[]
+}
+
+```
+
+## 错误统一处理
+
+## 并发处理

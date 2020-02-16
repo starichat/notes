@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/starichat/notes/DesignPatter/credit_sys/model"
+	"github.com/starichat/notes/DesignPatter/credit_system/model"
 	"log"
 	_ "time"
 )
@@ -14,17 +14,17 @@ func (d *Dao) AddCredit(c *model.CreditInfo) (err error) {
 
 // 更新数据
 func (d *Dao) UpdateCredit(c *model.CreditInfo) (err error) {
-	log.Println(c.Id)
-	return d.DB.Table("credits").Update(c).Error
+	log.Println(c)
+	return d.DB.Table("credits").Where("id = ?",c.Id).Update(c).Error
 }
 
 // 查询指定id的详细内容
-func (d *Dao) FindCreditById(id uint) (credit *model.CreditInfo, err error) {
+func (d *Dao) FindCreditById(id int) (credit *model.CreditInfo, err error) {
 	credit = &model.CreditInfo{}
 	err = d.DB.Table("credits").Select("id, channel_id, event_id, credit, created_time, expired_time").Where("id = ?",id).Find(credit).Error
 	if err != nil {
 		log.Printf("查询数据失败： %v",err)
-		return nil,err
+		return nil, err
 	}
 	return credit, err
 }

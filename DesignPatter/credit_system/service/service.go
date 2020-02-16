@@ -1,14 +1,19 @@
 package service
 
+import (
+	"context"
+	"github.com/starichat/notes/DesignPatter/credit_system/config"
+	"github.com/starichat/notes/DesignPatter/credit_system/dao"
+)
 
 // Service struct
 type Service struct {
-	c         *config.Config
+	c         *config.DBConfig
 	dao       *dao.Dao
 }
 
 // New init
-func New(c *conf.Config) (s *Service) {
+func New(c *config.DBConfig) (s *Service) {
 	s = &Service{
 		c:         c,
 		dao:       dao.New(c),
