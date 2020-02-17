@@ -4,7 +4,7 @@ import "time"
 
 // CreditInfo 积分信息
 type CreditInfo struct {
-	Id uint64 `"gorm:column:id;type:int;primary_key;AUTO_INCREMENT"`
+	Id int `"gorm:column:id;type:int;primary_key;AUTO_INCREMENT"`
 	ChannelId string `"gorm:column:channel_id;type:varchar(32);"`
 	EventId string  `"gorm:column:event_id;type:varchar(32);"`
 	Credit int  `"gorm:column:credit;type:varchar(32);"`
@@ -14,15 +14,15 @@ type CreditInfo struct {
 
 // UserInfo 用户信息
 type UserInfo struct {
-	Id uint64  `"gorm:column:id;type:int;primary_key;AUTO_INCREMENT"`
+	Id int  `"gorm:column:id;type:int;primary_key;AUTO_INCREMENT"`
 	Password string  `"gorm:column:password;type:varchar(32);"`
 }
 
 // UserCredit 用户积分信息
 type UserCredit struct {
-	Id uint64 `"gorm:column:id;type:int;primary_key;AUTO_INCREMENT"`
-	UserId uint64 `"gorm:column:user_id;type:int"`
-	CreditId uint64 `"gorm:column:credit_id;type:int"`
+	Id int `"gorm:column:id;type:int;primary_key;AUTO_INCREMENT"`
+	UserId int `"gorm:column:user_id;type:int"`
+	CreditId int `"gorm:column:credit_id;type:int"`
 }
 
 type CreditReq struct {

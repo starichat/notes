@@ -33,3 +33,8 @@ func GetType(id string) (ctype int) {
 	return ctype
 }
 
+// creditID 生成器
+func GenerateID() (credit int) {
+	return
+}
+
